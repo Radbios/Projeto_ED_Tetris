@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1642892292 source:c:\users\fabri\desktop\tetris\main.c
+1643596673 source:c:\users\fabri\desktop\tetris\main.c
 	<stdio.h>
 	<allegro5/allegro.h>
 	<allegro5/allegro_primitives.h>
