@@ -14,7 +14,7 @@
 const int largura_t = 640;
 const int altura_t = 480;
 const int DIMENSAO_P = 30;
-const int LINHAS = 15;
+const int LINHAS = 18;
 const int COLUNAS = 10;
 const int BLOCOS = 4;
 const int tela_x = 100;
@@ -56,13 +56,13 @@ ALLEGRO_BITMAP *p5 = NULL;
 void init_piecesQueue(int queue[]);
 void piecesQueue(int queue[]);
 void init_piece(int map[][COLUNAS], int piece, int cordenada[]);
-void draw_piece(int map[][COLUNAS], int piece);
+void draw_piece(int map[][COLUNAS], int cordenada[]);
 void girar(int cordenada[]);
 void checar_linha(int map[][COLUNAS]);
 // ------------------
 
 //---------- MOVIMENTO -----------
-void move_baixo(int map[][COLUNAS], int cordenada_blocos[], bool *new_p);
+void move_baixo(int map[][COLUNAS], int cordenada_blocos[], bool *new_p, bool *game_over);
 void move_esquerda(int map[][COLUNAS], int cordenada_blocos[]);
 void move_direita(int map[][COLUNAS], int cordenada_blocos[]);
 //-----------
@@ -243,7 +243,6 @@ void menu()
             imagem = al_load_bitmap("image/menu.jpg");
             al_clear_to_color(al_map_rgb(0, 0, 0));
             al_draw_bitmap(imagem, 0, 0, 0);
-            al_draw_rectangle(0, 0,  largura_t, altura_t, al_map_rgb(0, 0, 0), 3);
             al_draw_rectangle(largura_t/2 - 80, altura_t/4 - 10,  largura_t/2 + 80, altura_t/4 + 50, al_map_rgb(255, 255, 255), 3);
             al_draw_text(font40, al_map_rgb(255, 255, 255), largura_t/2, altura_t/4, ALLEGRO_ALIGN_CENTRE, "TETRIS");
             al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2, ALLEGRO_ALIGN_CENTRE, "Jogar");
@@ -295,14 +294,14 @@ void init_piece(int map[][COLUNAS], int piece, int cordenada[]){
 }
 
 
-void draw_piece(int map[][COLUNAS], int piece)
+void draw_piece(int map[][COLUNAS], int cordenada[])
 {
     int i, j;
     for(i = 0; i < LINHAS; i++){
         for(j = 0; j < COLUNAS; j++){
             if(map[i][j] == 1 || map[i][j] == 2){
-                al_draw_filled_rectangle(tela_x + (j*DIMENSAO_P), tela_y + (i*DIMENSAO_P), tela_x + (j*DIMENSAO_P) + 30, tela_y + (i*DIMENSAO_P)+ 30, al_map_rgb(0, 0, 255));
-                al_draw_rectangle(tela_x + (j*DIMENSAO_P), tela_y + (i*DIMENSAO_P), tela_x + (j*DIMENSAO_P) + 30, tela_y + (i*DIMENSAO_P) + 30, al_map_rgb(255, 0, 200), 2);
+                al_draw_filled_rectangle(tela_x + (j*DIMENSAO_P), tela_y + (i*DIMENSAO_P) - 90, tela_x + (j*DIMENSAO_P) + 30, tela_y + (i*DIMENSAO_P)+ 30 - 90, al_map_rgb(0, 0, 255));
+                al_draw_rectangle(tela_x + (j*DIMENSAO_P), tela_y + (i*DIMENSAO_P) - 90, tela_x + (j*DIMENSAO_P) + 30, tela_y + (i*DIMENSAO_P) + 30 - 90, al_map_rgb(255, 0, 200), 2);
             }
         }
     }
@@ -318,10 +317,8 @@ void checar_linha(int map[][COLUNAS])
                 break;
             }
             else if(j == 9){
-                for(h = LINHAS; h > 0; h--){
-                    for(k = 0; k < COLUNAS; k++){
-                        map[i][k] = map[i-1][k];
-                    }
+                for(k = 0; k < COLUNAS; k++){
+                    map[i][k] = 0;
                 }
             }
         }
@@ -334,12 +331,18 @@ void girar(int cordenada[])
 
 }
 
-void move_baixo(int map[][COLUNAS], int cordenada_blocos[], bool *new_p)
+void move_baixo(int map[][COLUNAS], int cordenada_blocos[], bool *new_p, bool *game_over)
 {
     int i;
     for(i = 0; i< BLOCOS ; i++)
     {
-        if(cordenada_blocos[i] + 10 >= 150 || map[0][cordenada_blocos[i] + 10] == 2){
+        //SE ACHAR UMA PEÇA OU O LIMITE DO MAPA >> STOP
+        if(cordenada_blocos[i] + 10 >= LINHAS*10 || map[0][cordenada_blocos[i] + 10] == 2)
+        {
+            if(cordenada_blocos[i] <= 40){
+                *game_over = true;
+                return;
+        }
             for(i = 0; i<BLOCOS; i++)
             {
                 map[0][cordenada_blocos[i]] = 2;
@@ -417,14 +420,14 @@ bool stop_move(int map[][COLUNAS], int cordenada_blocos[])
 void start_game(){
 
     //------------ VARIÁVEIS DO JOGO -------------
-    bool game_over = false;
+    bool *game_over = false;
     bool *new_p = true;
     bool pause = false;
     bool move[] = {false, false, false};
     int cordenada_blocos[BLOCOS], j;
     enum {BAIXO, ESQUERDA, DIREITA};
     ALLEGRO_EVENT ev;
-    int map[15][10] = {0};
+    int map[18][10] = {0};
 
     // --------------------
 
@@ -548,10 +551,9 @@ void start_game(){
             piecesQueue(pieces_queue);
             new_p = false;
         }
-
-        draw_piece(map, pieces_queue[0]);
+        draw_piece(map, cordenada_blocos);
         if(move[BAIXO]){
-            move_baixo(map, cordenada_blocos, &new_p);
+            move_baixo(map, cordenada_blocos, &new_p, &game_over);
         }
         if(move[ESQUERDA]){
             move_esquerda(map, cordenada_blocos);
