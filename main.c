@@ -21,12 +21,12 @@ const int tela_x = 100;
 const int tela_y = 0;
 int FPS = 60;
 char str[17];
-int contador = 0;
 
 //
 
 //----- TIMER -----
-ALLEGRO_TIMER *timer = NULL;
+ALLEGRO_TIMER *timer = NULL, *contador = 0;
+
 //-------
 //------ SOUNDS ------
 ALLEGRO_SAMPLE *selectOptionSound = NULL;
@@ -44,7 +44,7 @@ ALLEGRO_FONT *font40 = NULL;
 // ----------------- INICIALIZAÇÃO DA ALLEGRO --------------
 
 ALLEGRO_DISPLAY *display = NULL;
-ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
+ALLEGRO_EVENT_QUEUE *fila_eventos = NULL, *fila_contador = NULL;
 
 //---------------
 
@@ -94,6 +94,8 @@ int main(int argc, char **argv)
 
     //VARIÁVEIS
     bool fim = false;
+    bool iniciar = false;
+    int intro = 0;
     //
    if(!al_init()) {
       fprintf(stderr, "failed to initialize allegro!\n");
@@ -169,6 +171,7 @@ int main(int argc, char **argv)
     //
 
     al_start_timer(timer);
+
     menu();
 
     //---------- FIM ----------
@@ -201,6 +204,7 @@ void menu()
 	int pos_y = altura_t/2 + 10;
 	bool fim = false;
 	bool desenho = true;
+
     //-------------------
  //SOUND
     selectOptionSound = al_load_sample("sound/effects/select_option.wav");
@@ -265,6 +269,7 @@ void menu()
         else if(ev.type == ALLEGRO_EVENT_TIMER){
             desenho = true;
         }
+
 
         if(desenho && al_is_event_queue_empty(fila_eventos)){
         // ---------------- DESENHO ---------------
@@ -482,6 +487,7 @@ void start_game(){
     bool *game_over = false;
     bool *new_p = true;
     bool pause = false;
+    bool desenho = false;
     bool move[] = {false, false, false};
     int cordenada_blocos[BLOCOS], j;
     int p_atual;
@@ -525,80 +531,93 @@ void start_game(){
 
 			}
 	    }
+	    else if(ev.type == ALLEGRO_EVENT_TIMER){
+            move_baixo(map, cordenada_blocos, &new_p, &game_over);
+            desenho = true;
+
+	    }
 	    //------------------------
 
+
 	    // ------------DESENHO--------------
-        al_clear_to_color(al_map_rgb(100, 100, 100));
-        al_draw_bitmap(imagemGame, 0, 0, 0);
+
+	    if(desenho){
+
+            al_clear_to_color(al_map_rgb(100, 100, 100));
+            al_draw_bitmap(imagemGame, 0, 0, 0);
 
 
 
 
-        //RETANGULO DO GAME (300 x 4508)
-        al_draw_rectangle(tela_x ,-10 , tela_x + 300, 450, al_map_rgb(255,62,0), 6);
-        al_draw_filled_rectangle(tela_x ,0 , tela_x + 300, 450, al_map_rgb(31,10,47));
-        //
+            //RETANGULO DO GAME (300 x 4508)
+            al_draw_rectangle(tela_x ,-10 , tela_x + 300, 450, al_map_rgb(255,62,0), 6);
+            al_draw_filled_rectangle(tela_x ,0 , tela_x + 300, 450, al_map_rgb(31,10,47));
+            //
 
-        //INFORMAÇÕES DA DIREITA
-        al_draw_textf(font20, al_map_rgb(255,231,6), 420, 20, ALLEGRO_ALIGN_INTEGER , "SCORE : %d", score);
-        al_draw_textf(font20, al_map_rgb(255,231,6), 420, 60, ALLEGRO_ALIGN_INTEGER, "LEVEL : 1");
-        //al_draw_textf(font20, al_map_rgb(255,231,6), 420, 100, ALLEGRO_ALIGN_INTEGER, "SPEED : 0");
-        //al_draw_textf(font20, al_map_rgb(255,231,6), 420, 140, ALLEGRO_ALIGN_INTEGER, "TIME : 0");
-        //
+            //INFORMAÇÕES DA DIREITA
+            al_draw_textf(font20, al_map_rgb(255,231,6), 420, 20, ALLEGRO_ALIGN_INTEGER , "SCORE : %d", score);
+            al_draw_textf(font20, al_map_rgb(255,231,6), 420, 60, ALLEGRO_ALIGN_INTEGER, "LEVEL : 1");
+            //al_draw_textf(font20, al_map_rgb(255,231,6), 420, 100, ALLEGRO_ALIGN_INTEGER, "SPEED : 0");
+            al_draw_textf(font20, al_map_rgb(255,231,6), 420, 140, ALLEGRO_ALIGN_INTEGER, "TIME :");
+            //
 
-        //ESPAÇO PARA PREVISÃO DAS PEÇAS (50 x 50)
-        al_draw_filled_rectangle(40 ,5 , 90, 55, al_map_rgb(0, 0, 0));
-        al_draw_filled_rectangle(40 ,60 , 90, 110, al_map_rgb(0, 0, 0));
-        al_draw_filled_rectangle(40 ,115 , 90, 165, al_map_rgb(0, 0, 0));
-        al_draw_filled_rectangle(40 ,170 , 90, 220, al_map_rgb(0, 0, 0));
+            //ESPAÇO PARA PREVISÃO DAS PEÇAS (50 x 50)
+            al_draw_filled_rectangle(40 ,5 , 90, 55, al_map_rgb(0, 0, 0));
+            al_draw_filled_rectangle(40 ,60 , 90, 110, al_map_rgb(0, 0, 0));
+            al_draw_filled_rectangle(40 ,115 , 90, 165, al_map_rgb(0, 0, 0));
+            al_draw_filled_rectangle(40 ,170 , 90, 220, al_map_rgb(0, 0, 0));
 
-        al_draw_rectangle(40, 5, 90, 55, al_map_rgb(255,62,0), 3);
-        al_draw_rectangle(40, 60, 90, 110, al_map_rgb(255,62,0), 3);
-        al_draw_rectangle(40, 115, 90, 165, al_map_rgb(255,62,0), 3);
-        al_draw_rectangle(40, 170, 90, 220, al_map_rgb(255,62,0), 3);
+            al_draw_rectangle(40, 5, 90, 55, al_map_rgb(255,62,0), 3);
+            al_draw_rectangle(40, 60, 90, 110, al_map_rgb(255,62,0), 3);
+            al_draw_rectangle(40, 115, 90, 165, al_map_rgb(255,62,0), 3);
+            al_draw_rectangle(40, 170, 90, 220, al_map_rgb(255,62,0), 3);
 
-        for( j = 0; j < BLOCOS; j++)
-        {
-            switch(pieces_queue[j])
+            for( j = 0; j < BLOCOS; j++)
             {
-                case 0:
-                    al_draw_scaled_bitmap(p1, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
-                    break;
-                case 1:
-                    al_draw_scaled_bitmap(p2, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
-                    break;
-                case 2:
-                    al_draw_scaled_bitmap(p3, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
-                    break;
-                case 3:
-                    al_draw_scaled_bitmap(p4, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
-                    break;
-                case 4:
-                    al_draw_scaled_bitmap(p5, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
-                    break;
+                switch(pieces_queue[j])
+                {
+                    case 0:
+                        al_draw_scaled_bitmap(p1, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
+                        break;
+                    case 1:
+                        al_draw_scaled_bitmap(p2, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
+                        break;
+                    case 2:
+                        al_draw_scaled_bitmap(p3, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
+                        break;
+                    case 3:
+                        al_draw_scaled_bitmap(p4, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
+                        break;
+                    case 4:
+                        al_draw_scaled_bitmap(p5, 0, 0, 50, 50, 40, 5 + (j*55), 50, 50, 0);
+                        break;
+                }
             }
+
+            //
+
+            //SKILL (50 x 50)
+            al_draw_rectangle(410, 400, 460, 450, al_map_rgb(255,62,0), 6);
+            al_draw_filled_rectangle(410 ,400 , 460, 450, al_map_rgb(0, 0, 0));
+            //
+
+            //BLOCOS
+            if(new_p){
+                int i;
+                checar_linha(map, &score);
+                init_piece(map, pieces_queue[0], cordenada_blocos);
+                p_atual = pieces_queue[0];
+                piecesQueue(pieces_queue);
+                new_p = false;
+            }
+
+            draw_piece(map, cordenada_blocos);
+
+            al_flip_display();
+            desenho = false;
         }
 
-        //
-
-        //SKILL (50 x 50)
-        al_draw_rectangle(410, 400, 460, 450, al_map_rgb(255,62,0), 6);
-        al_draw_filled_rectangle(410 ,400 , 460, 450, al_map_rgb(0, 0, 0));
-        //
-
-        //BLOCOS
-        if(new_p){
-            int i;
-            checar_linha(map, &score);
-            init_piece(map, pieces_queue[0], cordenada_blocos);
-            p_atual = pieces_queue[0];
-            piecesQueue(pieces_queue);
-            new_p = false;
-        }
-        draw_piece(map, cordenada_blocos);
-
-        al_flip_display();
-        //------------------------
+            //------------------------
     }
     //--------------------------
 
