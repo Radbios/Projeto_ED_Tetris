@@ -73,7 +73,7 @@ void piecesQueue(int queue[]);
 void init_piece(int map[][COLUNAS], int piece, int cordenada[]);
 void draw_piece(int map[][COLUNAS], int cordenada[]);
 void girar(int map[][COLUNAS], int cordenada[], int p_atual);
-void checar_linha(int map[][COLUNAS]);
+void checar_linha(int map[][COLUNAS], int *score);
 // ------------------
 
 //---------- MOVIMENTO -----------
@@ -335,7 +335,7 @@ void draw_piece(int map[][COLUNAS], int cordenada[])
     }
 }
 
-void checar_linha(int map[][COLUNAS])
+void checar_linha(int map[][COLUNAS], int *score)
 {
     int i, j, k, h;
     for(i = 0; i < LINHAS; i++){
@@ -348,6 +348,12 @@ void checar_linha(int map[][COLUNAS])
                 for(k = 0; k < COLUNAS; k++){
                     map[i][k] = 0;
                 }
+                for(k = i; k > 0 ; k--){
+                    for(h = 0; h < COLUNAS ; h++){
+                        map[k][h] = map[k-1][h];
+                    }
+                }
+                *score = *score + 100;
             }
         }
 
@@ -358,16 +364,23 @@ void girar(int map[][COLUNAS],int cordenada[], int p_atual)
 {
     if(p_atual != 0){
         //------ ALTURA E COMPRIMENTO DA PEÇA -------
-        int altura = (cordenada[3]/10) - (cordenada[0]/10) + 1;
-        int comprimento = (cordenada[3]%10) - (cordenada[0]%10) + 1;
-        // ------------------------
+        int altura = (cordenada[3]/10 - cordenada[0]/10) + 1;
+        int comprimento = (cordenada[3]%10 - cordenada[0]%10) + 1;
+        // --------------
 
+        // ------ CORDENADAS DO PRIMIRO BLOCO ----
+        int coluna0 = cordenada[0]%10;
+        int linha0 = cordenada[0]/10;
+        // --------------
+
+        //--------- VARIAVEIS AUXILIARES -------
         int i, j;
-        int altura_atual = (cordenada[1]/10);
-        int comprimento_atual = (cordenada[1]%10);
-
-        int inicio_piece = cordenada[0] - 1;
-
+        bool verificar = true;
+        int aux[BLOCOS][BLOCOS];
+        int aux1 = linha0;
+        int aux2 = coluna0 + 3;
+        int bloco = 0;
+        //-------------
 
 
 
@@ -472,6 +485,7 @@ void start_game(){
     bool move[] = {false, false, false};
     int cordenada_blocos[BLOCOS], j;
     int p_atual;
+    int *score = 0;
     enum {BAIXO, ESQUERDA, DIREITA};
     ALLEGRO_EVENT ev;
     int map[18][10] = {0};
@@ -514,11 +528,9 @@ void start_game(){
 	    //------------------------
 
 	    // ------------DESENHO--------------
-	   	al_clear_to_color(al_map_rgb(100, 100, 100));
-
-
-
+        al_clear_to_color(al_map_rgb(100, 100, 100));
         al_draw_bitmap(imagemGame, 0, 0, 0);
+
 
 
 
@@ -528,10 +540,10 @@ void start_game(){
         //
 
         //INFORMAÇÕES DA DIREITA
-        al_draw_textf(font20, al_map_rgb(255,231,6), 560, 40, ALLEGRO_ALIGN_CENTRE, "LEVEL :");
-        al_draw_text(font20, al_map_rgb(255,231,6), 460, 40, ALLEGRO_ALIGN_CENTRE, "SPEED :");
-        al_draw_text(font20, al_map_rgb(255,231,6), 460, 90, ALLEGRO_ALIGN_CENTRE, "SCORE :");
-        al_draw_text(font20, al_map_rgb(255,231,6), 560, 90, ALLEGRO_ALIGN_CENTRE, "TIME :");
+        al_draw_textf(font20, al_map_rgb(255,231,6), 420, 20, ALLEGRO_ALIGN_INTEGER , "SCORE : %d", score);
+        al_draw_textf(font20, al_map_rgb(255,231,6), 420, 60, ALLEGRO_ALIGN_INTEGER, "LEVEL : 1");
+        //al_draw_textf(font20, al_map_rgb(255,231,6), 420, 100, ALLEGRO_ALIGN_INTEGER, "SPEED : 0");
+        //al_draw_textf(font20, al_map_rgb(255,231,6), 420, 140, ALLEGRO_ALIGN_INTEGER, "TIME : 0");
         //
 
         //ESPAÇO PARA PREVISÃO DAS PEÇAS (50 x 50)
@@ -577,13 +589,14 @@ void start_game(){
         //BLOCOS
         if(new_p){
             int i;
-            checar_linha(map);
+            checar_linha(map, &score);
             init_piece(map, pieces_queue[0], cordenada_blocos);
             p_atual = pieces_queue[0];
             piecesQueue(pieces_queue);
             new_p = false;
         }
         draw_piece(map, cordenada_blocos);
+
         al_flip_display();
         //------------------------
     }
