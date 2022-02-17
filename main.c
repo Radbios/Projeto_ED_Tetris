@@ -25,7 +25,7 @@ char str[17];
 //
 
 //----- TIMER -----
-ALLEGRO_TIMER *timer = NULL, *contador = 0;
+ALLEGRO_TIMER *timer = NULL;
 
 //-------
 //------ SOUNDS ------
@@ -44,7 +44,7 @@ ALLEGRO_FONT *font40 = NULL;
 // ----------------- INICIALIZAÇÃO DA ALLEGRO --------------
 
 ALLEGRO_DISPLAY *display = NULL;
-ALLEGRO_EVENT_QUEUE *fila_eventos = NULL, *fila_contador = NULL;
+ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
 
 //---------------
 
@@ -490,6 +490,7 @@ void start_game(){
     bool desenho = false;
     bool move[] = {false, false, false};
     int cordenada_blocos[BLOCOS], j;
+    int seg = 0, min = 0, contador = 0;
     int p_atual;
     int *score = 0;
     enum {BAIXO, ESQUERDA, DIREITA};
@@ -532,7 +533,19 @@ void start_game(){
 			}
 	    }
 	    else if(ev.type == ALLEGRO_EVENT_TIMER){
-            move_baixo(map, cordenada_blocos, &new_p, &game_over);
+            // ----- CRONOMETRO ------
+            contador++;
+            if(contador == FPS){
+                move_baixo(map, cordenada_blocos, &new_p, &game_over);
+                seg++;
+                contador = 0;
+
+                if(seg == 60){
+                    min++;
+                    seg = 0;
+                }
+            }
+
             desenho = true;
 
 	    }
@@ -558,7 +571,7 @@ void start_game(){
             al_draw_textf(font20, al_map_rgb(255,231,6), 420, 20, ALLEGRO_ALIGN_INTEGER , "SCORE : %d", score);
             al_draw_textf(font20, al_map_rgb(255,231,6), 420, 60, ALLEGRO_ALIGN_INTEGER, "LEVEL : 1");
             //al_draw_textf(font20, al_map_rgb(255,231,6), 420, 100, ALLEGRO_ALIGN_INTEGER, "SPEED : 0");
-            al_draw_textf(font20, al_map_rgb(255,231,6), 420, 140, ALLEGRO_ALIGN_INTEGER, "TIME :");
+            al_draw_textf(font20, al_map_rgb(255,231,6), 420, 140, ALLEGRO_ALIGN_INTEGER, "TIME : %d:%d", min, seg);
             //
 
             //ESPAÇO PARA PREVISÃO DAS PEÇAS (50 x 50)
