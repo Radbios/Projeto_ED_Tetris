@@ -253,7 +253,7 @@
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
 
-1645056672 source:c:\tetris\main.c
+1645378171 source:c:\tetris\main.c
 	<stdio.h>
 	<allegro5/allegro.h>
 	<allegro5/allegro_primitives.h>
