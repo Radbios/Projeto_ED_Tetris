@@ -1,10 +1,10 @@
+Fabiano	3200
+pedro	1700
+pedro	1700
+FABIO	1300
+JOAO	600
+FABIANO	300
 fabinano2	200
 fabiano	100
 fabiano1	100
 faban	100
-fabiano	100
-none	0
-none	0
-none	0
-none	0
-none	0
