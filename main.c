@@ -79,7 +79,7 @@ void manipular_entrada(ALLEGRO_EVENT evento, char jogador[]);
 // ---------------------- pieces -----------
 void init_piecesQueue(int queue[]);
 void piecesQueue(int queue[]);
-void init_piece(int map[][COLUNAS], int piece, int coordenada[]);
+void init_piece(int map[][COLUNAS], int piece, int coordenada[], bool *portugues, int letras[]);
 void draw_piece(int map[][COLUNAS]);
 void girar(int map[][COLUNAS], int coordenada[], int p_atual);
 void checar_linha(int map[][COLUNAS], int *score);
@@ -94,7 +94,7 @@ void move_direita(int map[][COLUNAS], int cordenada_blocos[]);
 //-----------
 
 void record();
-void start_game();
+void start_game(bool *portugues);
 void menu();
 
 
@@ -150,43 +150,43 @@ int main(int argc, char **argv)
     //
 
     //------ LOAD BITMAP ------
-    imagemMenu = al_load_bitmap("image/menu.jpg");
-    imagemGame = al_load_bitmap("image/start_game.jpg");
-    imagemGameOver = al_load_bitmap("image/game_over.jpg");
-    imagemRecord = al_load_bitmap("image/record.jpg");
-    slogan = al_load_bitmap("image/slogan.png");
-    p1 = al_load_bitmap("image/pieces/p0.png");
-    p2 = al_load_bitmap("image/pieces/p1.png");
-    p3 = al_load_bitmap("image/pieces/p2.png");
-    p4 = al_load_bitmap("image/pieces/p3.png");
-    p5 = al_load_bitmap("image/pieces/p4.png");
+    imagemMenu = al_load_bitmap("res/image/menu.jpg");
+    imagemGame = al_load_bitmap("res/image/start_game.jpg");
+    imagemGameOver = al_load_bitmap("res/image/game_over.jpg");
+    imagemRecord = al_load_bitmap("res/image/record.jpg");
+    slogan = al_load_bitmap("res/image/slogan.png");
+    p1 = al_load_bitmap("res/image/pieces/p0.png");
+    p2 = al_load_bitmap("res/image/pieces/p1.png");
+    p3 = al_load_bitmap("res/image/pieces/p2.png");
+    p4 = al_load_bitmap("res/image/pieces/p3.png");
+    p5 = al_load_bitmap("res/image/pieces/p4.png");
     //---------
 
     // --- SOUNDS ---
-    menuSound = al_load_sample("sound/background_music/menu.wav");
+    menuSound = al_load_sample("res/sound/background_music/menu.wav");
     inst_menuSound = al_create_sample_instance(menuSound);
     al_attach_sample_instance_to_mixer(inst_menuSound, al_get_default_mixer());
     al_set_sample_instance_playmode(inst_menuSound, ALLEGRO_PLAYMODE_LOOP);
     al_set_sample_instance_gain(inst_menuSound, 0.6 );
     al_set_sample_instance_speed(inst_menuSound, 0.8 );
 
-    gameSound = al_load_sample("sound/background_music/tokyo-ghoul.wav");
+    gameSound = al_load_sample("res/sound/background_music/tokyo-ghoul.wav");
     inst_gameSound = al_create_sample_instance(gameSound);
     al_attach_sample_instance_to_mixer(inst_gameSound, al_get_default_mixer());
     al_set_sample_instance_playmode(inst_gameSound, ALLEGRO_PLAYMODE_LOOP);
     al_set_sample_instance_gain(inst_gameSound, 0.8 );
     al_set_sample_instance_speed(inst_gameSound, 1 );
 
-    recordSound = al_load_sample("sound/background_music/record.wav");
+    recordSound = al_load_sample("res/sound/background_music/record.wav");
     inst_recordSound = al_create_sample_instance(recordSound);
     al_attach_sample_instance_to_mixer(inst_recordSound, al_get_default_mixer());
     al_set_sample_instance_playmode(inst_recordSound, ALLEGRO_PLAYMODE_LOOP);
     al_set_sample_instance_gain(inst_recordSound, 0.6 );
     al_set_sample_instance_speed(inst_recordSound, 0.8 );
 
-    selectOptionSound = al_load_sample("sound/effects/select_option.wav");
-    changeOptionSound = al_load_sample("sound/effects/change_option.wav");
-    keyboardSound = al_load_sample("sound/effects/keyboard.wav");
+    selectOptionSound = al_load_sample("res/sound/effects/select_option.wav");
+    changeOptionSound = al_load_sample("res/sound/effects/change_option.wav");
+    keyboardSound = al_load_sample("res/sound/effects/keyboard.wav");
 
     // ---
 
@@ -206,15 +206,15 @@ int main(int argc, char **argv)
     //
 
     //CRIAR FONTE
-    font10 = al_load_ttf_font("arial.TTF", 10, 0);
-    font15 = al_load_ttf_font("arial.TTF", 15, 0);
-    font20 = al_load_ttf_font("arial.TTF", 20, 0);
-    font40 = al_load_ttf_font("arial.TTF", 40, 0);
+    font10 = al_load_ttf_font("res/arial.TTF", 10, 0);
+    font15 = al_load_ttf_font("res/arial.TTF", 15, 0);
+    font20 = al_load_ttf_font("res/arial.TTF", 20, 0);
+    font40 = al_load_ttf_font("res/arial.TTF", 40, 0);
     //
 
     al_start_timer(timer);
 
-    menu();
+    menu(true, false);
 
     //---------- FIM ----------
 	al_destroy_event_queue(fila_eventos);
@@ -248,90 +248,195 @@ void menu()
     int pos_x = largura_t/2 - 60;
 	int pos_y = altura_t/2 + 10;
 	bool fim = false;
-	bool desenho = true;
+	bool menuGame = true;
+	bool modeGame = false;
+	bool *portugues = false;
+	bool desenhoMenu = false;
+	bool desenhoModeGame = false;
     //-------------------
 
-    //EVENTOS E LÓGICA
-    while(!(fim))
-    {
-        // ------------------- INSTALAÇÃO E INICIAÇÃO -----------------
-        ALLEGRO_EVENT ev;
-        al_play_sample_instance(inst_menuSound);
-        //-----------
+    // --- MENU GAME ---
+    while (!fim){
+        while(menuGame){
+            // ------------------- INSTALAÇÃO E INICIAÇÃO -----------------
+            ALLEGRO_EVENT ev;
+            al_play_sample_instance(inst_menuSound);
+            //-----------
 
-	    al_wait_for_event(fila_eventos, &ev);
+            al_wait_for_event(fila_eventos, &ev);
 
-        //--------------- MOVIMENTO E SELECT -------------
-	    if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
-	    {
+            //--------------- MOVIMENTO E SELECT -------------
+            if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
+            {
 
-			switch(ev.keyboard.keycode)
-			{
-				case ALLEGRO_KEY_UP:
-					if (pos_y <= 250){
-						pos_y = altura_t/2 + 10;
-						break;
-					}
-					else{
-                        al_play_sample(changeOptionSound, 0.8 , 0 , 0.8 , ALLEGRO_PLAYMODE_ONCE, 0 );
-						pos_y -= 40;
-						break;
-					}
-				case ALLEGRO_KEY_DOWN:
-					if (pos_y >= 330){
-						pos_y = 330;
-						break;
-					}
-					else {
-                        al_play_sample(changeOptionSound, 0.8 , 0 , 0.8 , ALLEGRO_PLAYMODE_ONCE, 0 );
-						pos_y += 40;
-						break;
-					}
-				case ALLEGRO_KEY_ENTER:
+                switch(ev.keyboard.keycode)
+                {
+                    case ALLEGRO_KEY_UP:
+                        if (pos_y <= 250){
+                            pos_y = altura_t/2 + 10;
+                            break;
+                        }
+                        else{
+                            al_play_sample(changeOptionSound, 0.8 , 0 , 0.8 , ALLEGRO_PLAYMODE_ONCE, 0 );
+                            pos_y -= 40;
+                            break;
+                        }
+                    case ALLEGRO_KEY_DOWN:
+                        if (pos_y >= 330){
+                            pos_y = 330;
+                            break;
+                        }
+                        else {
+                            al_play_sample(changeOptionSound, 0.8 , 0 , 0.8 , ALLEGRO_PLAYMODE_ONCE, 0 );
+                            pos_y += 40;
+                            break;
+                        }
+                    case ALLEGRO_KEY_ENTER:
 
-                    al_play_sample(selectOptionSound, 2 , 0 , 1.5 , ALLEGRO_PLAYMODE_ONCE, 0 );
+                        al_play_sample(selectOptionSound, 2 , 0 , 1.5 , ALLEGRO_PLAYMODE_ONCE, 0 );
 
-					if (pos_y == 330) fim = true;
-					else if (pos_y == 250){
-                        al_stop_sample_instance (inst_menuSound);
-                        start_game();
-					}
-					else if (pos_y == 290){
-                        al_stop_sample_instance (inst_menuSound);
-                        record();
-					}
-					break;
-			}
-	    }
-	    //
+                        if (pos_y == 250){
+                            desenhoMenu = false;
+                            menuGame = false;
+                            desenhoModeGame = true;
+                            modeGame = true;
+                        }
+                        else if (pos_y == 290){
+                            al_stop_sample_instance (inst_menuSound);
+                            record();
+                        }
+                        else if (pos_y == 330){
+                            menuGame = false;
+                            desenhoMenu = false;
+                            fim = true;
+                        }
+                        break;
+                }
+            }
+            //
 
-		else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-		{
-			fim = true;
-		}
-        else if(ev.type == ALLEGRO_EVENT_TIMER){
-            desenho = true;
+            else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+            {
+                menuGame = false;
+                desenhoMenu = false;
+                fim = true;
+            }
+            else if(ev.type == ALLEGRO_EVENT_TIMER){
+                desenhoMenu = true;
+            }
+
+
+            if(desenhoMenu && al_is_event_queue_empty(fila_eventos)){
+            // ---------------- DESENHO ---------------
+
+                al_clear_to_color(al_map_rgb(0, 0, 0));
+                al_draw_bitmap(imagemMenu, 0, 0, 0);
+                al_draw_rectangle(largura_t/2 - 80, altura_t/4 - 10,  largura_t/2 + 80, altura_t/4 + 50, al_map_rgb(255, 255, 255), 3);
+                al_draw_text(font40, al_map_rgb(255, 255, 255), largura_t/2, altura_t/4, ALLEGRO_ALIGN_CENTRE, "TETRIS");
+                //al_draw_bitmap(slogan, largura_t/3 - 10, altura_t/4 - 40, 0);
+                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2, ALLEGRO_ALIGN_CENTRE, "Jogar");
+                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 40, ALLEGRO_ALIGN_CENTRE, "Recordes");
+                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 80, ALLEGRO_ALIGN_CENTRE, "Sair");
+                al_draw_filled_circle(pos_x, pos_y, 10, al_map_rgb(255, 255, 0));
+                al_flip_display();
+
+            //------------------------
+            }
         }
+        //----------------
+
+        // --- SELECT MODE GAME ---
+        while(modeGame)
+        {
+            // ------------------- INSTALAÇÃO E INICIAÇÃO -----------------
+            ALLEGRO_EVENT ev;
+            //-----------
+
+            al_wait_for_event(fila_eventos, &ev);
+
+            //--------------- MOVIMENTO E SELECT -------------
+            if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
+            {
+
+                switch(ev.keyboard.keycode)
+                {
+                    case ALLEGRO_KEY_UP:
+                        if (pos_y <= 250){
+                            pos_y = altura_t/2 + 10;
+                            break;
+                        }
+                        else{
+                            al_play_sample(changeOptionSound, 0.8 , 0 , 0.8 , ALLEGRO_PLAYMODE_ONCE, 0 );
+                            pos_y -= 40;
+                            break;
+                        }
+                    case ALLEGRO_KEY_DOWN:
+                        if (pos_y >= 330){
+                            pos_y = 330;
+                            break;
+                        }
+                        else {
+                            al_play_sample(changeOptionSound, 0.8 , 0 , 0.8 , ALLEGRO_PLAYMODE_ONCE, 0 );
+                            pos_y += 40;
+                            break;
+                        }
+                    case ALLEGRO_KEY_ENTER:
+
+                        al_play_sample(selectOptionSound, 2 , 0 , 1.5 , ALLEGRO_PLAYMODE_ONCE, 0 );
+
+                        if (pos_y == 250){
+                            al_stop_sample_instance (inst_menuSound);
+                            modeGame = false;
+                            desenhoModeGame = false;
+                            start_game(&portugues);
+                            menuGame = true;
+                        }
+                        else if (pos_y == 290){
+
+                        }
+                        break;
+                    case ALLEGRO_KEY_ESCAPE:
+
+                        modeGame = false;
+                        desenhoModeGame = false;
+                        menuGame = true;
+                        pos_y = altura_t/2 + 10;
+
+                        break;
+                }
+            }
+            //
+
+            else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+            {
+                modeGame = false;
+                desenhoModeGame = false;
+                fim = true;
+            }
+            else if(ev.type == ALLEGRO_EVENT_TIMER){
+                desenhoModeGame = true;
+            }
 
 
-        if(desenho && al_is_event_queue_empty(fila_eventos)){
-        // ---------------- DESENHO ---------------
+            if(desenhoModeGame && al_is_event_queue_empty(fila_eventos)){
+            // ---------------- DESENHO ---------------
 
-            al_clear_to_color(al_map_rgb(0, 0, 0));
-            al_draw_bitmap(imagemMenu, 0, 0, 0);
-            al_draw_rectangle(largura_t/2 - 80, altura_t/4 - 10,  largura_t/2 + 80, altura_t/4 + 50, al_map_rgb(255, 255, 255), 3);
-            //al_draw_text(font40, al_map_rgb(255, 255, 255), largura_t/2, altura_t/4, ALLEGRO_ALIGN_CENTRE, "TETRIS");
-            al_draw_bitmap(slogan, largura_t/3 - 10, altura_t/4 - 40, 0);
-            al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2, ALLEGRO_ALIGN_CENTRE, "Jogar");
-            al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 40, ALLEGRO_ALIGN_CENTRE, "Recordes");
-            al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 80, ALLEGRO_ALIGN_CENTRE, "Sair");
-            al_draw_filled_circle(pos_x, pos_y, 10, al_map_rgb(255, 255, 0));
-            al_flip_display();
+                al_clear_to_color(al_map_rgb(0, 0, 0));
+                al_draw_bitmap(imagemMenu, 0, 0, 0);
+                al_draw_rectangle(largura_t/2 - 80, altura_t/4 - 10,  largura_t/2 + 80, altura_t/4 + 50, al_map_rgb(255, 255, 255), 3);
+                al_draw_text(font40, al_map_rgb(255, 255, 255), largura_t/2, altura_t/4, ALLEGRO_ALIGN_CENTRE, "TETRIS");
+                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2, ALLEGRO_ALIGN_CENTRE, "Usual");
+                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 40, ALLEGRO_ALIGN_CENTRE, "Português");
+                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 80, ALLEGRO_ALIGN_CENTRE, "Matemática");
+                al_draw_filled_circle(pos_x, pos_y, 10, al_map_rgb(255, 255, 0));
+                al_flip_display();
 
-		//------------------------
+            //------------------------
+            }
         }
-    }
     //----------------
+    }
+
 }
 
 void init_piecesQueue(int queue[])
@@ -361,7 +466,7 @@ void piecesQueue(int queue[])
     }
 }
 
-void init_piece(int map[][COLUNAS], int piece, int coordenada[]){
+void init_piece(int map[][COLUNAS], int piece, int coordenada[], bool *portugues, int letras[]){
     int i;
     for(i = 0; i < BLOCOS; i++){
         int bloco = pieces[piece][i];
@@ -622,7 +727,7 @@ void move_direita(int map[][COLUNAS], int cordenada_blocos[])
     }
 }
 
-void start_game(){
+void start_game(bool *portugues){
 
     //------------ VARIÁVEIS DO JOGO -------------
     bool *game_over = false;
@@ -634,6 +739,7 @@ void start_game(){
 
     int map[18][10] = {0};
     int cordenada_blocos[BLOCOS], j, i;
+    int letras[BLOCOS];
     int seg = 0, min = 0, contador = 0;
     int p_atual;
     int *score = 0;
@@ -669,7 +775,7 @@ void start_game(){
 			{
 				case ALLEGRO_KEY_ESCAPE:
 				    al_stop_sample_instance (inst_gameSound);
-				    return;
+				    game_over = true;
 				    break;
                 case ALLEGRO_KEY_SPACE:
                     girar(map, cordenada_blocos, p_atual);
@@ -678,7 +784,7 @@ void start_game(){
                     move_baixo(map, cordenada_blocos, &new_p, &game_over);
                     break;
                 case ALLEGRO_KEY_UP:
-                    while(!new_p){
+                    while(!new_p && !(game_over)){
                         move_baixo(map, cordenada_blocos, &new_p, &game_over);
                     }
                     break;
@@ -777,7 +883,7 @@ void start_game(){
             if(new_p){
                 int i;
                 checar_linha(map, &score);
-                init_piece(map, pieces_queue[0], cordenada_blocos);
+                init_piece(map, pieces_queue[0], cordenada_blocos, &portugues, letras);
                 p_atual = pieces_queue[0];
                 piecesQueue(pieces_queue);
                 new_p = false;

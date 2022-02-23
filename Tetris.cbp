@@ -15,8 +15,11 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="../../../../../../../allegro-5.0.10-mingw-4.7.0/lib/liballegro-5.0.10-monolith-mt-debug.a" />
+					<Add option="-lallegro-5.0.10-monolith-mt-debug" />
 				</Linker>
+				<ExtraCommands>
+					<Add after='cmd.exe /c copy .\allegro-5.0.10-mingw-4.7.0\bin\allegro-5.0.10-monolith-mt-debug.dll &quot;$TARGET_OUTPUT_DIR&quot;' />
+				</ExtraCommands>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/Tetris" prefix_auto="1" extension_auto="1" />
@@ -28,14 +31,21 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="../../../../../../../allegro-5.0.10-mingw-4.7.0/lib/liballegro-5.0.10-monolith-mt.a" />
+					<Add option="-lallegro-5.0.10-monolith-mt" />
 				</Linker>
+				<ExtraCommands>
+					<Add after='cmd.exe /c copy .\allegro-5.0.10-mingw-4.7.0\bin\allegro-5.0.10-monolith-mt.dll &quot;$TARGET_OUTPUT_DIR&quot;' />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-pedantic" />
 			<Add option="-Wall" />
-			<Add directory="../../../../../../../allegro-5.0.10-mingw-4.7.0/include" />
+			<Add directory="allegro-5.0.10-mingw-4.7.0/include" />
 		</Compiler>
+		<Linker>
+			<Add directory="allegro-5.0.10-mingw-4.7.0/lib" />
+		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
