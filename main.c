@@ -79,8 +79,9 @@ void manipular_entrada(ALLEGRO_EVENT evento, char jogador[]);
 // ---------------------- pieces -----------
 void init_piecesQueue(int queue[]);
 void piecesQueue(int queue[]);
-void init_piece(int map[][COLUNAS], int piece, int coordenada[], bool *portugues, int letras[]);
-void draw_piece(int map[][COLUNAS]);
+void init_letter(int letras[]);
+void init_piece(int map[][COLUNAS], int piece, int coordenada[]);
+void draw_piece(int map[][COLUNAS], int coordenadas[], bool portugues, int letras[]);
 void girar(int map[][COLUNAS], int coordenada[], int p_atual);
 void checar_linha(int map[][COLUNAS], int *score);
 void limpar_matriz(int map[][COLUNAS]);
@@ -88,13 +89,13 @@ void shadow_piece(int map[][COLUNAS], int coordenada[]);
 // ------------------
 
 //---------- MOVIMENTO -----------
-void move_baixo(int map[][COLUNAS], int coordenada_blocos[], bool *new_p, bool *game_over);
+void move_baixo(int map[][COLUNAS], int coordenada_blocos[], bool *new_p, bool *game_over, int letras[]);
 void move_esquerda(int map[][COLUNAS], int cordenada_blocos[]);
 void move_direita(int map[][COLUNAS], int cordenada_blocos[]);
 //-----------
 
 void record();
-void start_game(bool *portugues);
+void start_game(bool portugues);
 void menu();
 
 
@@ -167,7 +168,7 @@ int main(int argc, char **argv)
     inst_menuSound = al_create_sample_instance(menuSound);
     al_attach_sample_instance_to_mixer(inst_menuSound, al_get_default_mixer());
     al_set_sample_instance_playmode(inst_menuSound, ALLEGRO_PLAYMODE_LOOP);
-    al_set_sample_instance_gain(inst_menuSound, 0.6 );
+    al_set_sample_instance_gain(inst_menuSound, 0.4 );
     al_set_sample_instance_speed(inst_menuSound, 0.8 );
 
     gameSound = al_load_sample("res/sound/background_music/tokyo-ghoul.wav");
@@ -250,7 +251,7 @@ void menu()
 	bool fim = false;
 	bool menuGame = true;
 	bool modeGame = false;
-	bool *portugues = false;
+	bool portugues = false;
 	bool desenhoMenu = false;
 	bool desenhoModeGame = false;
     //-------------------
@@ -384,16 +385,27 @@ void menu()
 
                         al_play_sample(selectOptionSound, 2 , 0 , 1.5 , ALLEGRO_PLAYMODE_ONCE, 0 );
 
+
+
                         if (pos_y == 250){
                             al_stop_sample_instance (inst_menuSound);
                             modeGame = false;
                             desenhoModeGame = false;
-                            start_game(&portugues);
+                            portugues = false;
+                            start_game(portugues);
                             menuGame = true;
+                            pos_y = altura_t/2 + 10;
                         }
                         else if (pos_y == 290){
-
+                            al_stop_sample_instance (inst_menuSound);
+                            modeGame = false;
+                            desenhoModeGame = false;
+                            portugues = true;
+                            start_game(portugues);
+                            menuGame = true;
+                            pos_y = altura_t/2 + 10;
                         }
+
                         break;
                     case ALLEGRO_KEY_ESCAPE:
 
@@ -427,7 +439,7 @@ void menu()
                 al_draw_text(font40, al_map_rgb(255, 255, 255), largura_t/2, altura_t/4, ALLEGRO_ALIGN_CENTRE, "TETRIS");
                 al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2, ALLEGRO_ALIGN_CENTRE, "Usual");
                 al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 40, ALLEGRO_ALIGN_CENTRE, "Português");
-                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 80, ALLEGRO_ALIGN_CENTRE, "Matemática");
+                al_draw_text(font20, al_map_rgb(255, 255, 255), largura_t/2, altura_t/2 + 80, ALLEGRO_ALIGN_CENTRE, "...");
                 al_draw_filled_circle(pos_x, pos_y, 10, al_map_rgb(255, 255, 0));
                 al_flip_display();
 
@@ -466,7 +478,20 @@ void piecesQueue(int queue[])
     }
 }
 
-void init_piece(int map[][COLUNAS], int piece, int coordenada[], bool *portugues, int letras[]){
+void init_letter(int letras[]){
+    time_t p;
+    int i;
+    srand((unsigned) time(&p));
+    for(i = 0; i< BLOCOS; i++)
+    {
+        letras[i] = (rand() % 26) + 65;
+        while(letras[i] == 75 || letras[i] == 87 || letras[i] == 89){
+            letras[i] = (rand() % 26) + 65;
+        }
+    }
+}
+
+void init_piece(int map[][COLUNAS], int piece, int coordenada[]){
     int i;
     for(i = 0; i < BLOCOS; i++){
         int bloco = pieces[piece][i];
@@ -486,6 +511,7 @@ void limpar_matriz(int map[][COLUNAS]){
         }
     }
 }
+
 void shadow_piece(int map[][COLUNAS], int coordenada[]){
     int i, j, aux_coordenada[4];
     bool stop = false;
@@ -498,7 +524,7 @@ void shadow_piece(int map[][COLUNAS], int coordenada[]){
     while(!stop){
 
         for(i = 0; i < BLOCOS; i++){
-            if(aux_coordenada[i] + 10 >= LINHAS*10 || map[0][aux_coordenada[i] + 10] == 2){
+            if(aux_coordenada[i] + 10 >= LINHAS*10 || map[0][aux_coordenada[i] + 10] > 2){
                 for(j = 0; j < BLOCOS; j++){
                     if(map[0][aux_coordenada[j]] != 1){
                         map[0][aux_coordenada[j]] = -1;
@@ -518,7 +544,7 @@ void shadow_piece(int map[][COLUNAS], int coordenada[]){
 
 }
 
-void draw_piece(int map[][COLUNAS])
+void draw_piece(int map[][COLUNAS], int coordenadas[], bool portugues, int letras[])
 {
     int i, j, k;
     for(i = 0; i < LINHAS; i++){
@@ -526,10 +552,26 @@ void draw_piece(int map[][COLUNAS])
             if(map[i][j] == -1){
                 al_draw_filled_rectangle(tela_x + (j*DIMENSAO_P), tela_y + (i*DIMENSAO_P) - 90, tela_x + (j*DIMENSAO_P) + 30, tela_y + (i*DIMENSAO_P) + 30 - 90, al_map_rgb(126,85,157));
             }
-            else if(map[i][j] == 1 || map[i][j] == 2){
+            else if(map[i][j] > 0){
                 al_draw_filled_rectangle(tela_x + (j*DIMENSAO_P), tela_y + (i*DIMENSAO_P) - 90, tela_x + (j*DIMENSAO_P) + 30, tela_y + (i*DIMENSAO_P)+ 30 - 90, al_map_rgb(0, 0, 255));
                 al_draw_rectangle(tela_x + (j*DIMENSAO_P), tela_y + (i*DIMENSAO_P) - 90, tela_x + (j*DIMENSAO_P) + 30, tela_y + (i*DIMENSAO_P) + 30 - 90, al_map_rgb(255, 0, 200), 2);
+
+                // --- SE O MODE GAME FOR PORTUGUES ---
+                if(portugues){
+                    // --- SE ELE ACHAR A PEÇA QUE ESTÁ CAINDO ---
+                    if(map[i][j] == 1){
+                        for(k = 0; k < BLOCOS; k++){
+                          if(coordenadas[k] == (i*10) + j){
+                            al_draw_textf(font15, al_map_rgb(255,255,255), tela_x + (j*DIMENSAO_P) + 10, tela_y + (i*DIMENSAO_P) - 85, ALLEGRO_ALIGN_INTEGER, "%c", letras[k]);
+                          }
+                        }
+                    }
+                    else{
+                        al_draw_textf(font15, al_map_rgb(255,255,255), tela_x + (j*DIMENSAO_P) + 10, tela_y + (i*DIMENSAO_P) - 85, ALLEGRO_ALIGN_INTEGER, "%c", map[i][j]);
+                    }
+                }
             }
+
         }
     }
 }
@@ -618,7 +660,7 @@ void girar(int map[][COLUNAS],int coordenada[], int p_atual)
     // --- CHECAR SE HÁ BLOCOS ADJACENTES ---
     for(i = 0; i < 4; i++){
         // --- SE HÁ, ELE NAO APLICA AS NOVAS COORDENADAS (BLOCOS) ---
-        if(map[0][coordenada_auxiliar[i]] == 2){
+        if(map[0][coordenada_auxiliar[i]] > 2){
             break;
         }
         // --- SE NÃO HÁ, ELE TROCA AS ANTIGAS COORDENADAS PELAS NOVAS ---
@@ -638,22 +680,16 @@ void girar(int map[][COLUNAS],int coordenada[], int p_atual)
     }
     // ---
 
-
-    // --- DESENHAR ---
-    draw_piece(map);
-    //
-
-
 }
 
-void move_baixo(int map[][COLUNAS], int coordenada_blocos[], bool *new_p, bool *game_over)
+void move_baixo(int map[][COLUNAS], int coordenada_blocos[], bool *new_p, bool *game_over, int letras[])
 {
     int i;
     for(i = 0; i< BLOCOS ; i++)
     {
 
         //SE ACHAR UMA PEÇA OU O LIMITE DO MAPA >> STOP
-        if(coordenada_blocos[i] + 10 >= LINHAS*10 || map[0][coordenada_blocos[i] + 10] == 2)
+        if(coordenada_blocos[i] + 10 >= LINHAS*10 || map[0][coordenada_blocos[i] + 10]> 2)
         {
             //----- GAME OVER -----
             if(coordenada_blocos[i] <= 40){
@@ -664,7 +700,7 @@ void move_baixo(int map[][COLUNAS], int coordenada_blocos[], bool *new_p, bool *
             // ---------
             for(i = 0; i<BLOCOS; i++)
             {
-                map[0][coordenada_blocos[i]] = 2;
+                map[0][coordenada_blocos[i]] = letras[i];
             }
             *new_p = true;
             return;
@@ -688,7 +724,7 @@ void move_esquerda(int map[][COLUNAS], int cordenada_blocos[])
 
     for(i = 0; i< BLOCOS ; i++)
     {
-        if(cordenada_blocos[i]%10 == 0 || map[0][cordenada_blocos[i] - 1] == 2 ){
+        if(cordenada_blocos[i]%10 == 0 || map[0][cordenada_blocos[i] - 1] > 2 ){
             return;
         }
     }
@@ -711,7 +747,7 @@ void move_direita(int map[][COLUNAS], int cordenada_blocos[])
 
     for(i = 0; i< BLOCOS ; i++)
     {
-        if(cordenada_blocos[i]%10 == 9 || map[0][cordenada_blocos[i] + 1] == 2 ){
+        if(cordenada_blocos[i]%10 == 9 || map[0][cordenada_blocos[i] + 1] > 2 ){
             return;
         }
     }
@@ -727,7 +763,7 @@ void move_direita(int map[][COLUNAS], int cordenada_blocos[])
     }
 }
 
-void start_game(bool *portugues){
+void start_game(bool portugues){
 
     //------------ VARIÁVEIS DO JOGO -------------
     bool *game_over = false;
@@ -738,7 +774,7 @@ void start_game(bool *portugues){
     bool new_record = false;
 
     int map[18][10] = {0};
-    int cordenada_blocos[BLOCOS], j, i;
+    int coordenada_blocos[BLOCOS], j, i;
     int letras[BLOCOS];
     int seg = 0, min = 0, contador = 0;
     int p_atual;
@@ -778,21 +814,21 @@ void start_game(bool *portugues){
 				    game_over = true;
 				    break;
                 case ALLEGRO_KEY_SPACE:
-                    girar(map, cordenada_blocos, p_atual);
+                    girar(map, coordenada_blocos, p_atual);
                     break;
                 case ALLEGRO_KEY_DOWN:
-                    move_baixo(map, cordenada_blocos, &new_p, &game_over);
+                    move_baixo(map, coordenada_blocos, &new_p, &game_over, letras);
                     break;
                 case ALLEGRO_KEY_UP:
                     while(!new_p && !(game_over)){
-                        move_baixo(map, cordenada_blocos, &new_p, &game_over);
+                        move_baixo(map, coordenada_blocos, &new_p, &game_over, letras);
                     }
                     break;
                 case ALLEGRO_KEY_LEFT:
-                    move_esquerda(map, cordenada_blocos);
+                    move_esquerda(map, coordenada_blocos);
                     break;
                 case ALLEGRO_KEY_RIGHT:
-                    move_direita(map, cordenada_blocos);
+                    move_direita(map, coordenada_blocos);
                     break;
 
 			}
@@ -801,7 +837,7 @@ void start_game(bool *portugues){
             // ----- CRONOMETRO ------
             contador++;
             if(contador == FPS){
-                move_baixo(map, cordenada_blocos, &new_p, &game_over);
+                move_baixo(map, coordenada_blocos, &new_p, &game_over, letras);
                 seg++;
                 contador = 0;
 
@@ -810,10 +846,6 @@ void start_game(bool *portugues){
                     seg = 0;
                 }
             }
-            if(move_down && (contador == FPS/2)){
-                    move_baixo(map, cordenada_blocos, &new_p, &game_over);
-                    move_baixo(map, cordenada_blocos, &new_p, &game_over);
-                }
 
 
             desenho = true;
@@ -850,6 +882,18 @@ void start_game(bool *portugues){
             al_draw_rectangle(40, 115, 90, 165, al_map_rgb(255,62,0), 3);
             al_draw_rectangle(40, 170, 90, 220, al_map_rgb(255,62,0), 3);
 
+            // --- ESPAÇO PARA PREVISÃO DAS PRÓXIMAS LETRAS ---
+            al_draw_filled_rectangle(40 ,235 , 90, 285, al_map_rgb(0, 0, 0));
+            al_draw_filled_rectangle(40 ,290 , 90, 340, al_map_rgb(0, 0, 0));
+            al_draw_filled_rectangle(40 ,345 , 90, 395, al_map_rgb(0, 0, 0));
+            al_draw_filled_rectangle(40 ,400 , 90, 450, al_map_rgb(0, 0, 0));
+
+            al_draw_rectangle(40, 235, 90, 285, al_map_rgb(255,62,0), 3);
+            al_draw_rectangle(40, 290, 90, 340, al_map_rgb(255,62,0), 3);
+            al_draw_rectangle(40, 345, 90, 395, al_map_rgb(255,62,0), 3);
+            al_draw_rectangle(40, 400, 90, 450, al_map_rgb(255,62,0), 3);
+
+
             for( j = 0; j < BLOCOS; j++)
             {
                 switch(pieces_queue[j])
@@ -883,15 +927,16 @@ void start_game(bool *portugues){
             if(new_p){
                 int i;
                 checar_linha(map, &score);
-                init_piece(map, pieces_queue[0], cordenada_blocos, &portugues, letras);
+                init_letter(letras);
+                init_piece(map, pieces_queue[0], coordenada_blocos);
                 p_atual = pieces_queue[0];
                 piecesQueue(pieces_queue);
                 new_p = false;
             }
 
             limpar_matriz(map);
-            shadow_piece(map, cordenada_blocos);
-            draw_piece(map);
+            shadow_piece(map, coordenada_blocos);
+            draw_piece(map, coordenada_blocos ,portugues, letras);
             al_flip_display();
             desenho = false;
         }
@@ -926,6 +971,9 @@ void start_game(bool *portugues){
 
             if (ev.type == ALLEGRO_EVENT_KEY_DOWN && ev.keyboard.keycode == ALLEGRO_KEY_ENTER)
             {
+                if(strlen(jogador) == 0){
+                    strcpy(jogador, "unknown");
+                }
                 dados = fopen("records.txt", "w");
                 for(i = 0; i < 10; i++){
                     if(score_table[i] < score){
