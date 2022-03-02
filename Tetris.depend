@@ -253,8 +253,10 @@
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
 
-1645723606 source:c:\tetris\main.c
+1646206379 source:c:\tetris\main.c
 	<stdio.h>
+	<string.h>
+	<stdlib.h>
 	<allegro5/allegro.h>
 	<allegro5/allegro_primitives.h>
 	<allegro5/allegro_font.h>
@@ -264,6 +266,7 @@
 	<allegro5/allegro_acodec.h>
 	<time.h>
 	"objetos/pieces.h"
+	"objetos/dicionario.h"
 
 1372639132 ..\..\..\..\..\..\..\allegro-5.0.10-mingw-4.7.0\include\allegro5\allegro.h
 	"allegro5/base.h"
@@ -756,4 +759,6 @@
 1362338300 c:\tetris\allegro-5.0.10-mingw-4.7.0\include\allegro5\allegro_acodec.h
 	"allegro5/allegro.h"
 	"allegro5/allegro_audio.h"
+
+1646185577 c:\tetris\objetos\dicionario.h
 

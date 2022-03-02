@@ -49,6 +49,9 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="objetos/dicionario.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="objetos/pieces.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />

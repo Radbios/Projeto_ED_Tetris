@@ -1,33 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
-	<ActiveTarget name="Release" />
-	<File name="objetos\pieces.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="144" topLine="0" />
-		</Cursor>
-	</File>
+	<ActiveTarget name="Debug" />
 	<File name="main.c" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="13733" topLine="237" />
+			<Cursor1 position="21161" topLine="259" />
 		</Cursor>
 		<Folding>
-			<Collapse line="103" />
-			<Collapse line="452" />
+			<Collapse line="111" />
+			<Collapse line="254" />
 			<Collapse line="463" />
-			<Collapse line="478" />
-			<Collapse line="491" />
-			<Collapse line="493" />
-			<Collapse line="500" />
-			<Collapse line="512" />
-			<Collapse line="545" />
-			<Collapse line="577" />
-			<Collapse line="602" />
-			<Collapse line="683" />
-			<Collapse line="719" />
-			<Collapse line="742" />
-			<Collapse line="1035" />
-			<Collapse line="1097" />
+			<Collapse line="1086" />
+			<Collapse line="1148" />
 		</Folding>
+	</File>
+	<File name="objetos\pieces.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="109" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="objetos\dicionario.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1149" topLine="33" />
+		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

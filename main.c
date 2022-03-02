@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
@@ -8,6 +10,7 @@
 #include <allegro5/allegro_acodec.h>
 #include <time.h>
 #include "objetos/pieces.h"
+#include "objetos/dicionario.h"
 
 
 //------ VARIÁVEIS DO JOGO -------
@@ -87,6 +90,10 @@ void checar_linha(int map[][COLUNAS], int *score);
 void limpar_matriz(int map[][COLUNAS]);
 void shadow_piece(int map[][COLUNAS], int coordenada[]);
 // ------------------
+
+// --- PALAVRAS ---
+void checar_palavra(int map[LINHAS][COLUNAS], no *pArvore, int *score);
+// ---
 
 //---------- MOVIMENTO -----------
 void move_baixo(int map[][COLUNAS], int coordenada_blocos[], bool *new_p, bool *game_over, int letras[]);
@@ -254,6 +261,7 @@ void menu()
 	bool portugues = false;
 	bool desenhoMenu = false;
 	bool desenhoModeGame = false;
+
     //-------------------
 
     // --- MENU GAME ---
@@ -482,13 +490,17 @@ void init_letter(int letras[]){
     time_t p;
     int i;
     srand((unsigned) time(&p));
-    for(i = 0; i< BLOCOS; i++)
+    /*for(i = 0; i< BLOCOS; i++)
     {
         letras[i] = (rand() % 26) + 65;
         while(letras[i] == 75 || letras[i] == 87 || letras[i] == 89){
             letras[i] = (rand() % 26) + 65;
         }
-    }
+    }*/
+    letras[0] = 65;
+    letras[1] = 67;
+    letras[2] = 72;
+    letras[3] = 65;
 }
 
 void init_piece(int map[][COLUNAS], int piece, int coordenada[]){
@@ -575,16 +587,19 @@ void draw_piece(int map[][COLUNAS], int coordenadas[], bool portugues, int letra
         }
     }
 }
-
+// --- CHECAR SE O JOGADOR FORMOU UMA LINHA ---
 void checar_linha(int map[][COLUNAS], int *score)
 {
     int i, j, k, h;
+    // --- CHECAR LINHAS E COLUNAS ---
     for(i = 0; i < LINHAS; i++){
         for(j = 0; j < COLUNAS; j++){
+            // --- SE ACHAR UM ESPAÇO SEM BLOCO ---
             if(map[i][j] == 0)
             {
                 break;
             }
+            // --- SE NÃO ---
             else if(j == 9){
                 for(k = 0; k < COLUNAS; k++){
                     map[i][k] = 0;
@@ -598,6 +613,70 @@ void checar_linha(int map[][COLUNAS], int *score)
             }
         }
 
+    }
+}
+
+
+void checar_palavra(int map[LINHAS][COLUNAS], no *pArvore, int *score){
+    int i, j, k, l, m, aux2 = 0;
+    for(i = LINHAS-1; i > 3; i--){
+        for(j = 0; j < COLUNAS; j++){
+            no *aux = pArvore;
+            for(k = j; k < COLUNAS; k++){
+
+                while(map[i][k] != aux->cod && aux->cod != '#'){
+                    aux = aux->dir;
+                }
+
+                // --- CONDIÇÃO DE PARADA ---
+                if(map[i][k] == 0 || aux->cod == '#'){
+                    break;
+                }
+                //
+
+                if(map[i][k] == aux->cod){
+                    aux = aux->prox;
+                    if(aux->cod == '!'){
+                        for(l = j; l < k+1; l++){
+                            map[i][l] = 0;
+                        }
+                        for(m = i; m > 3; m--){
+                            for(l = j; l < k; l++){
+                                map[i][l] = map[i+1][l];
+                            }
+                        }
+                        *score += 500;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    // --- CHECAR COLUNA ---
+    for(i = 0; i < COLUNAS; i++){
+        for(j = 3; j < LINHAS; j++){
+            no *aux = pArvore;
+            for(k = j; k < LINHAS; k++){
+                while(map[k][i] != aux->cod && aux->cod != '#'){
+                    aux = aux->dir;
+                }
+                // --- CONDIÇÃO DE PARADA ---
+                if(map[k][i] == 0 || aux->cod == '#'){
+                    break;
+                }
+                //
+                if(map[k][i] == aux->cod){
+                    aux = aux->prox;
+                    if(aux->cod == '!'){
+                        for(l = j; l < k+1; l++){
+                            map[l][i] = 0;
+                        }
+                        *score += 500;
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -766,8 +845,8 @@ void move_direita(int map[][COLUNAS], int cordenada_blocos[])
 void start_game(bool portugues){
 
     //------------ VARIÁVEIS DO JOGO -------------
-    bool *game_over = false;
-    bool *new_p = true;
+    bool *game_over = (bool *)malloc(sizeof(bool));
+    bool *new_p = (bool *)malloc(sizeof(bool));
     bool pause = false;
     bool desenho = false;
     bool move_down = false;
@@ -778,7 +857,7 @@ void start_game(bool portugues){
     int letras[BLOCOS];
     int seg = 0, min = 0, contador = 0;
     int p_atual;
-    int *score = 0;
+    int *score = (int *)malloc(sizeof(int));
     int score_table[10];
 
     enum {BAIXO, ESQUERDA, DIREITA};
@@ -788,18 +867,27 @@ void start_game(bool portugues){
     char jogador[17];
 
     FILE *dados;
-
-
     // --------------------
 
+
+    no *pArvore = (no *)malloc(sizeof(struct noArvore));
+    if(portugues){
+        initArvore(pArvore);
+        getLetter(pArvore);
+    }
+
+
     //--------------- INICIAR ---------------
+    *game_over = false;
+    *new_p = true;
+    *score = 0;
     init_piecesQueue(pieces_queue);
     al_play_sample_instance(inst_gameSound);
     strcpy(jogador, "");
     //-------------------
 
     // --------------- EVENTOS E LÓGICA -------------
-    while(!game_over)
+    while(!(*game_over))
     {
 
         al_wait_for_event(fila_eventos, &ev);
@@ -811,17 +899,17 @@ void start_game(bool portugues){
 			{
 				case ALLEGRO_KEY_ESCAPE:
 				    al_stop_sample_instance (inst_gameSound);
-				    game_over = true;
+				    *game_over = true;
 				    break;
                 case ALLEGRO_KEY_SPACE:
                     girar(map, coordenada_blocos, p_atual);
                     break;
                 case ALLEGRO_KEY_DOWN:
-                    move_baixo(map, coordenada_blocos, &new_p, &game_over, letras);
+                    move_baixo(map, coordenada_blocos, new_p, game_over, letras);
                     break;
                 case ALLEGRO_KEY_UP:
-                    while(!new_p && !(game_over)){
-                        move_baixo(map, coordenada_blocos, &new_p, &game_over, letras);
+                    while(!*new_p && !(*game_over)){
+                        move_baixo(map, coordenada_blocos, new_p, game_over, letras);
                     }
                     break;
                 case ALLEGRO_KEY_LEFT:
@@ -837,7 +925,7 @@ void start_game(bool portugues){
             // ----- CRONOMETRO ------
             contador++;
             if(contador == FPS){
-                move_baixo(map, coordenada_blocos, &new_p, &game_over, letras);
+                move_baixo(map, coordenada_blocos, new_p, game_over, letras);
                 seg++;
                 contador = 0;
 
@@ -867,10 +955,9 @@ void start_game(bool portugues){
             //
 
             //INFORMAÇÕES DA DIREITA
-            al_draw_textf(font20, al_map_rgb(255,231,6), 420, 20, ALLEGRO_ALIGN_INTEGER , "SCORE : %d", score);
+            al_draw_textf(font20, al_map_rgb(255,231,6), 420, 20, ALLEGRO_ALIGN_INTEGER , "SCORE : %d", *score);
             al_draw_textf(font20, al_map_rgb(255,231,6), 420, 60, ALLEGRO_ALIGN_INTEGER, "TIME : %d:%d", min, seg);
             //
-
             //ESPAÇO PARA PREVISÃO DAS PEÇAS (50 x 50)
             al_draw_filled_rectangle(40 ,5 , 90, 55, al_map_rgb(0, 0, 0));
             al_draw_filled_rectangle(40 ,60 , 90, 110, al_map_rgb(0, 0, 0));
@@ -924,14 +1011,14 @@ void start_game(bool portugues){
             //
 
             //BLOCOS
-            if(new_p){
+            if(*new_p){
                 int i;
-                checar_linha(map, &score);
+                checar_palavra(map, pArvore, score);
                 init_letter(letras);
                 init_piece(map, pieces_queue[0], coordenada_blocos);
                 p_atual = pieces_queue[0];
                 piecesQueue(pieces_queue);
-                new_p = false;
+                *new_p = false;
             }
 
             limpar_matriz(map);
@@ -951,13 +1038,13 @@ void start_game(bool portugues){
     for(i = 0; i < 10; i++){
         fscanf(dados, "%s%d", &jogador_table[i], &score_table[i]);
 
-        if(score > score_table[i]){
+        if(*score > score_table[i]){
             new_record = true;
         }
     }
     close(dados);
 
-    while(game_over){
+    while(*game_over){
 
         al_wait_for_event(fila_eventos, &ev);
         al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -976,8 +1063,8 @@ void start_game(bool portugues){
                 }
                 dados = fopen("records.txt", "w");
                 for(i = 0; i < 10; i++){
-                    if(score_table[i] < score){
-                        fprintf(dados, "%s\t%d\n", jogador, score);
+                    if(score_table[i] < *score){
+                        fprintf(dados, "%s\t%d\n", jogador, *score);
                         for(j = i; j < 9; j++){
                             fprintf(dados, "%s\t%d\n", jogador_table[j], score_table[j]);
                         }
@@ -987,7 +1074,7 @@ void start_game(bool portugues){
                 }
 
                 fclose(dados);
-                game_over = false;
+                *game_over = false;
             }
 
             // ---
@@ -1019,7 +1106,7 @@ void start_game(bool portugues){
 
             if (ev.type == ALLEGRO_EVENT_KEY_DOWN && ev.keyboard.keycode == ALLEGRO_KEY_ENTER)
             {
-                game_over = false;
+                *game_over = false;
             }
 
         }
@@ -1029,7 +1116,7 @@ void start_game(bool portugues){
 
         al_draw_textf(font20, al_map_rgb(255, 255, 255), largura_t / 2,
         ((altura_t - al_get_font_ascent(font20)) / 2) + 120,
-        ALLEGRO_ALIGN_CENTRE, "SCORE: %d", score);
+        ALLEGRO_ALIGN_CENTRE, "SCORE: %d", *score);
 
         al_flip_display();
     }
@@ -1076,7 +1163,7 @@ void record(){
             al_draw_textf(font20, al_map_rgb(255,255, 255), 500, 160 + (i-5)*40, ALLEGRO_ALIGN_INTEGER,"%d", score[i]);
         }
 
-        close(dados);
+        fclose(dados);
         al_flip_display();
 
         //_ ---
