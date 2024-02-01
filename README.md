@@ -29,7 +29,7 @@ Caso queira testar o jogo através do código, verifique se você atendeu aos se
 
 Para que o projeto funcione corretamente, siga estas etapas:
 
-* Baixe a **[pasta de arquivos](https://drive.google.com/drive/folders/1WUw7EzUoICxUS40wUuEz3aHPb75LDfE_?usp=sharing) que contem o Tetris.exe
+* Baixe a [pasta de arquivos](https://drive.google.com/drive/folders/1WUw7EzUoICxUS40wUuEz3aHPb75LDfE_?usp=sharing) que contem o Tetris.exe
 * Execute o Tetris.exe
 
 ## 🤝 Colaboradores
